@@ -15,12 +15,16 @@ from scipy.io import wavfile
 import numpy as np
 
 
-def single_split(from_min, to_min, file):
+def single_split(from_min, to_min, file,num):
     #AudioSegment.from_file(r"C:\Users\MSHK\Downloads\WhatsApp Ptt 2020-12-17 at 7.00.06 PM.ogg", format="ogg")
     #wav_audio.export("audio1111.mp3", format="mp3")
     t1 = from_min* 1000
     t2 = to_min * 1000
-    snd = AudioSegment.from_file("bismi.mp3")
+    if num != 1:
+        bismi = "int.wav"
+    else:
+        bismi = "bismi.mp3"
+    snd = AudioSegment.from_file(bismi)
     snd = snd.set_frame_rate(44100)
     snd.export("newint.wav", format="wav")
     AudioSegment.from_file(file)[t1:t2].set_frame_rate(44100).export("final.wav", format="wav")
@@ -181,6 +185,7 @@ if __name__ == "__main__":
 
 
     if True:
+        num = int(input("Repeat No: ") 
         results = input("Audio time: ")
         results1 = input("Slide time: ")
         audo = results
@@ -221,10 +226,8 @@ if __name__ == "__main__":
         else:
             results[item] = str(int(results[item][:3])//60)+":"+str(int(results[item][:3])%60)+':'+results[item][-2:]
             
-
-
     results2 = [(int(results[i][:1])*60*60*0.01+int(results[i][2:4])*60*0.01+int(results[i][-2:])*0.01) for i in range(len(results))]
-    a,b,c = single_split(results2[0]*100, results2[-1]*100, inputFile)
+    a,b,c = single_split(results2[0]*100, results2[-1]*100, inputFile,num)
     
 
     print(results2)
@@ -255,28 +258,27 @@ if __name__ == "__main__":
       acodec = 'ac3'
     image = Image.open("tempo.png")#+filelist[bgI])
     subimage = Image.open("logo1.png")
-
     width, height = image.size
     subwidth, subheight = subimage.size
-
-
-    image = image.crop((0, 0, width, results1[-1][1]))
-    subimage = subimage.crop((0, 0, width, subheight))
-    #im1.show()
-    dst = Image.new("RGB", (width,results1[-1][1]+subheight), "black")
-    dst.paste(image, (0,0))
-    dst.paste(subimage, (0,results1[-1][1]))
-    image = dst
-    results1[-1][1] = results1[-1][1]+subheight
-
-
-    
     depth = width*9/16
     width = width-width%2
     depth = int(depth)-int(depth)%2
     subwidth = subwidth-subwidth%2
     subheight = int(subheight)-int(subheight)%2
     value = str(width-width%2)+"x"+str(int(depth))
+
+
+########################################## for audio repeating
+    fs, h = wavfile.read('temp.wav')
+    #fs, b = wavfile.read('final.wav')
+    w  = h
+
+
+    for volv in range(num-1):
+        w = scipy.vstack((h,w))
+    write("jembo.wav", 44100, w.astype(np.int16))
+    inputFile1 = "jembo.wav"
+    
     ffmpegCommand = [FFMPEG_BIN,
        '-y', # (optional) means overwrite the output file if it already exists.
        '-f', 'rawvideo',
@@ -286,8 +288,7 @@ if __name__ == "__main__":
        '-r', '20', #'30' default frames per second this can be 10 20 then sample size 4410 or 2105 etc like that
        '-i', '-', # The input comes from a pipe
        '-an',
-       '-i', inputFile,
-       '-vf','scale=1280:-2',
+       '-i', inputFile1,
        '-acodec', acodec, # output audio codec
        '-b:a', "192k",
        '-vcodec', "libx264",
@@ -323,91 +324,115 @@ if __name__ == "__main__":
 
 
 
+    for yy in range(num):
 
 
-    bgI = 0
-    tag = 0
-    nextval = results2[tag+1]*1000-results2[0]*1000# + intrlen
-    fast = results3[tag]
-    subfast = subheight*sampleSize/len(subcompleteAudioArray)
-    count = results1[tag][1]
-    subcount = 0
-    subresult = [[0,0],[0,subheight]]
-    #results1[j+1][1]-results1[j][1]
-    temp = 0
-    #frames = os.listdir("frame")
-    cnt = 0
-    #frames = frames.sort(key=lambda f: int(filter(str.isdigit, f)))
-    for i in range(0, len(completeAudioArray), sampleSize):
-        if temp<len(subcompleteAudioArray)/sampleSize :
-            #subimage = Image.open("frame/"+"frame"+str(cnt)+".jpg")
-            cnt +=1
-            #print(frames[temp])
-            im = drawBars(image,image,count,results1,0)
-            #im = drawBars(subimage,image,subcount,subresult,1)
-            subcount = subcount + subfast/2
-            temp += 1
-            #print(temp)
-            #maxo = bgI
-            #nextval = results2[tag+1]*1000 + maxo
-    
-            try:
-                out_pipe.stdin.write(im.tobytes())
-            except:
-                pass   
-           
-        elif bgI/2<nextval:
+
+
+        bgI = 0
+        tag = 0
+        nextval = results2[tag+1]*1000-results2[0]*1000# + intrlen
+        fast = results3[tag]
+        subfast = subheight*sampleSize/len(subcompleteAudioArray)
+        count = results1[tag][1]
+        subcount = 0
+        subresult = [[0,0],[0,subheight]]
+        #results1[j+1][1]-results1[j][1]
+        temp = 0
+        frames = os.listdir("frame")
+        cnt = 0
+
+
+
+        if yy == num-1:
             
-            im = drawBars(image,image,count,results1,0)
-            count = count + fast/2
-            bgI += 1
-            try:
-                out_pipe.stdin.write(im.tobytes())
-                #outval = out_pipe.check_output()
-                #print(type(outval))
-            except:
-                pass
-            
-            
-        else:
-            tag = tag + 1
-            try:
-                nextval = results2[tag+1]*1000-results2[0]*1000 # + intrlen
-                fast = results3[tag]
-                count  = results1[tag][1]
+            #image = Image.open("tempo.png")#+filelist[bgI])
+            #subimage = Image.open("logo1.png")
+
+
+            #attaching at the end
+            image = image.crop((0, 0, width, results1[-1][1]))
+            subimage = subimage.crop((0, 0, width, subheight))
+            #im1.show()
+            dst = Image.new("RGB", (width,results1[-1][1]+subheight), "black")
+            dst.paste(image, (0,0))
+            dst.paste(subimage, (0,results1[-1][1]))
+            image = dst
+            results1[-1][1] = results1[-1][1]+subheight
+        
+
+        
+        #frames = frames.sort(key=lambda f: int(filter(str.isdigit, f)))
+        for i in range(0, len(completeAudioArray), sampleSize):
+            if temp<len(subcompleteAudioArray)/sampleSize :
+                #subimage = Image.open("frame/"+"frame"+str(cnt)+".jpg")
+                cnt +=1
+                #print(frames[temp])
                 im = drawBars(image,image,count,results1,0)
+                #im = drawBars(subimage,image,subcount,subresult,1)
+                subcount = subcount + subfast/2
+                temp += 1
+                #print(temp)
+                #maxo = bgI
+                #nextval = results2[tag+1]*1000 + maxo
+        
+                try:
+                    out_pipe.stdin.write(im.tobytes())
+                except:
+                    pass   
+               
+            elif bgI/2<nextval:
+                
+                im = drawBars(image,image,count,results1,0)
+                count = count + fast/2
                 bgI += 1
                 try:
-                    outval = out_pipe.stdin.write(im.tobytes())
+                    out_pipe.stdin.write(im.tobytes())
+                    #outval = out_pipe.check_output()
                     #print(type(outval))
-                    #print(outval)
                 except:
                     pass
-            except:
-                break
-        #print(count,"  ",fast,"  ")
-           
-              
-      # create video for output
-      #lastSpectrum = self.core.transformData(
-       # i,
-        #completeAudioArray,
-        #sampleSize,
-        #smoothConstantDown,
-        #smoothConstantUp,
-        #lastSpectrum)
-      #if imBackground != None:
-       # print(imBackground,"this is i wnat")
-        #im = self.core.drawBars(lastSpectrum, imBackground, visColor)
-      #else:
-      #results1,results
-      
+                
+                
+            else:
+                tag = tag + 1
+                try:
+                    nextval = results2[tag+1]*1000-results2[0]*1000 # + intrlen
+                    fast = results3[tag]
+                    count  = results1[tag][1]
+                    im = drawBars(image,image,count,results1,0)
+                    bgI += 1
+                    try:
+                        outval = out_pipe.stdin.write(im.tobytes())
+                        #print(type(outval))
+                        #print(outval)
+                    except:
+                        pass
+                except:
+                    break
+            #print(count,"  ",fast,"  ")
+               
+                  
+          # create video for output
+          #lastSpectrum = self.core.transformData(
+           # i,
+            #completeAudioArray,
+            #sampleSize,
+            #smoothConstantDown,
+            #smoothConstantUp,
+            #lastSpectrum)
+          #if imBackground != None:
+           # print(imBackground,"this is i wnat")
+            #im = self.core.drawBars(lastSpectrum, imBackground, visColor)
+          #else:
+          #results1,results
+          
 
-      
+          
 
-      #im = drawBars(filelist,bgI)#Image.open(filelist[0])
-      #print(i)#self.core.drawBars(lastSpectrum, getBackgroundAtIndex(bgI), visColor)
-      #if bgI < len(filelist)-1:
+          #im = drawBars(filelist,bgI)#Image.open(filelist[0])
+          #print(i)#self.core.drawBars(lastSpectrum, getBackgroundAtIndex(bgI), visColor)
+          #if bgI < len(filelist)-1:
 
 
     numpy.seterr(all='print')
