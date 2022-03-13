@@ -339,7 +339,7 @@ if __name__ == "__main__":
         subresult = [[0,0],[0,subheight]]
         #results1[j+1][1]-results1[j][1]
         temp = 0
-        frames = os.listdir("frame")
+        #frames = os.listdir("frame")
         cnt = 0
 
 
