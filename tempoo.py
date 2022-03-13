@@ -185,7 +185,7 @@ if __name__ == "__main__":
 
 
     if True:
-        num = int(input("Repeat No: ") 
+        num = int(input("Repeat No: "))
         results = input("Audio time: ")
         results1 = input("Slide time: ")
         audo = results
